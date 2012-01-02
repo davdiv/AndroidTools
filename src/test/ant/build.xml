@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!--
+    Java build tools related to the Android operating system.
+    Copyright (C) 2011 DivDE <divde@free.fr>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<project name="TestProject" default="main" basedir="../../..">
+    <path id="androidtools.classpath">
+        <path path="${androidtools.classpath}"/>
+    </path>
+    <taskdef resource="fr/free/divde/android/tools/antlib.xml" classpathref="androidtools.classpath" onerror="failall"/>
+
+    <property name="test.binary.input" value="${basedir}/src/test/ant/binary"/>
+    <property name="test.binary.output" value="${basedir}/target/ant-tests"/>
+
+    <macrodef name="rebuildImage">
+        <attribute name="bootImage"/>
+        <sequential>
+            <delete dir="${test.binary.output}"/>
+            <mkdir dir="${test.binary.output}"/>
+            <extractBootImage
+                bootImage="@{bootImage}"
+                kernel="${test.binary.output}/kernel.img"
+                ramdisk="${test.binary.output}/ramdisk.img"
+                storeName="bootName"
+                storeArgs="bootArgs"
+                storeBaseAddr="bootBaseAddress"
+            />
+            <makeBootImage
+                kernel="${test.binary.output}/kernel.img"
+                ramdisk="${test.binary.output}/ramdisk.img"
+                bootImage="${test.binary.output}/boot.img"
+                baseAddr="${bootBaseAddress}"
+                name="${bootName}"
+                args="${bootArgs}"
+            />
+            <fail message="Could not rebuild exactly the same image: @{bootImage}">
+                <condition>
+                    <not>
+                        <filesmatch file1="@{bootImage}" file2="${test.binary.output}/boot.img"/>
+                    </not>
+                </condition>
+            </fail>
+            <echo message="Successfully rebuilt @{bootImage}."/>
+        </sequential>
+    </macrodef>
+    
+    <target name="main">
+        <!--
+            Put your boot.img and recovery.img files in the src/test/ant/binary folder
+            and uncomment the following lines to test that rebuilding those images
+            produces the same files as the original ones:
+        -->
+        <!--rebuildImage bootImage="${test.binary.input}/boot.img"/-->
+        <!--rebuildImage bootImage="${test.binary.input}/recovery.img"/-->
+    </target>
+</project>
